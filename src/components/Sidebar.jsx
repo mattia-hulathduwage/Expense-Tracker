@@ -1,8 +1,10 @@
-// src/components/Sidebar.jsx
-import React from 'react';
+// src/components/Sidebar.js
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faExchangeAlt, faUser, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faMoneyBillWave, faCog, faSignOutAlt, faFileInvoiceDollar, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
+import Modal from './Modal';
 
 const SidebarContainer = styled.div`
   width: 250px;
@@ -12,9 +14,10 @@ const SidebarContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  position: relative; /* Required for positioning the logout item at the bottom */
-  font-family: 'Poppins', sans-serif; /* Apply Poppins font */
+  padding: 20px 0;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+  border-right: 3px solid #000;
 `;
 
 const LogoContainer = styled.div`
@@ -36,10 +39,12 @@ const LogoContainer = styled.div`
 const Nav = styled.nav`
   width: 100%;
   margin-top: 20px;
-  flex: 1; /* Allow this to take available space */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 `;
 
-const NavItem = styled.div`
+const NavItem = styled(Link)`
   display: flex;
   align-items: center;
   width: 100%;
@@ -48,12 +53,11 @@ const NavItem = styled.div`
   font-size: 18px;
   cursor: pointer;
   transition: background-color 0.3s ease, padding-left 0.3s ease;
+  text-decoration: none;
 
   &:hover {
-    background-color: #1B1A55;
+    background-color: #0b0b0b;
     padding-left: 20px;
-    border-top-right-radius: 25px;
-    border-bottom-right-radius: 25px;
   }
 
   .icon {
@@ -65,46 +69,79 @@ const NavItem = styled.div`
   }
 `;
 
+const LogoutButtonContainer = styled.div`
+  width: 100%;
+  margin-top: auto;
+  padding-top: 20px;
+`;
+
 const LogoutButton = styled(NavItem)`
-  position: absolute;
-  margin-left:60px;
-  bottom: 70px; /* Adjust to your desired spacing from the bottom */
-  background-color: transparent; /* Remove any background color */
+  background-color: transparent;
+
   &:hover {
-    background-color: transparent; /* No background change on hover */
-    color:
+    background-color: transparent;
+    color: #4C3BCF;
   }
 `;
 
-const Sidebar = () => {
+const Sidebar = ({ onLogout }) => {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleLogout = () => {
+    setShowModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowModal(false);
+    onLogout(); // Call the actual logout function here
+  };
+
+  const cancelLogout = () => {
+    setShowModal(false);
+  };
+
   return (
     <SidebarContainer>
       <LogoContainer>
-        <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="Logo" />
+        <img src={`${process.env.PUBLIC_URL}/new-logo.png`} alt="Logo" />
         <h1>iFinance</h1>
       </LogoContainer>
       <Nav>
-        <NavItem>
+        <NavItem to="/dashboard">
           <FontAwesomeIcon icon={faHome} className="icon" />
-          <span>Dashboard</span>
+          <span>Wallet</span>
         </NavItem>
-        <NavItem>
-          <FontAwesomeIcon icon={faExchangeAlt} className="icon" />
-          <span>Transactions</span>
+        <NavItem to="/income">
+          <FontAwesomeIcon icon={faMoneyBillWave} className="icon" />
+          <span>Income</span>
         </NavItem>
-        <NavItem>
-          <FontAwesomeIcon icon={faUser} className="icon" />
-          <span>Me</span>
+        <NavItem to="/expense">
+          <FontAwesomeIcon icon={faFileInvoiceDollar} className="icon" />
+          <span>Expense</span>
         </NavItem>
-        <NavItem>
+        <NavItem to="/calendar">
+          <FontAwesomeIcon icon={faCalendarAlt} className="icon" />
+          <span>Calendar</span>
+        </NavItem>
+        <NavItem to="/settings">
           <FontAwesomeIcon icon={faCog} className="icon" />
           <span>Settings</span>
         </NavItem>
       </Nav>
-      <LogoutButton onClick={() => alert('Logout clicked')}>
-        <FontAwesomeIcon icon={faSignOutAlt} className="icon" />
-        <span>Logout</span>
-      </LogoutButton>
+      <LogoutButtonContainer>
+        <LogoutButton to="#" onClick={handleLogout}>
+          <FontAwesomeIcon icon={faSignOutAlt} className="icon" />
+          <span>Logout</span>
+        </LogoutButton>
+      </LogoutButtonContainer>
+
+      {showModal && (
+        <Modal
+          message="Are you sure you want to logout?"
+          onConfirm={confirmLogout}
+          onCancel={cancelLogout}
+        />
+      )}
     </SidebarContainer>
   );
 };
