@@ -1,23 +1,18 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.js
+import React from 'react';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ display: 'flex', height: '100vh', flexDirection: 'column' }}>
+      <Header />
+      <div style={{ display: 'flex', flex: 1 }}>
+        <Sidebar />
+        <div style={{ marginLeft: '250px', padding: '20px', flex: 1 }}>
+          {/* Main content goes here */}
+        </div>
+      </div>
     </div>
   );
 }
