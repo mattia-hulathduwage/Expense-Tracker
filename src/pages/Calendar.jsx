@@ -58,7 +58,7 @@ const CalendarWrapper = styled.div`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
   .rbc-event {
-    font-size: 12px;
+    font-size: 10px;
     color: #fff;
     padding: 5px;
     border-radius: 5px;

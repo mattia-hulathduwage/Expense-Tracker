@@ -1,35 +1,69 @@
 import React, { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider } from '../firebaseConfig'; // Adjust path as needed
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-function Login() {
+function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [formErrors, setFormErrors] = useState({});
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error during Google sign-in:', error);
+  const validateForm = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email.trim()) {
+      errors.email = 'Email is required.';
+    } else if (!emailRegex.test(email)) {
+      errors.email = 'Email is invalid.';
     }
+    if (!password.trim()) {
+      errors.password = 'Password is required.';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  const handleFacebookSignIn = async () => {
-    try {
-      await signInWithPopup(auth, facebookProvider);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error during Facebook sign-in:', error);
-    }
-  };
-
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
-    console.log('Email:', email, 'Password:', password);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      // Trigger reCAPTCHA v3 validation
+      const token = await window.grecaptcha.execute('6Lf4QmUqAAAAADN5dcMDcZ69cd8VD--ZAnjMv7s1', { action: 'login' });
+console.log('reCAPTCHA Token:', token); // Log the token
+
+      const response = await fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, token }), // Send the token to the backend
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Login failed:', text);
+        setFormErrors({ loginError: 'Invalid email or password' });
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Login successful:', data);
+
+      // Set authentication state
+      setIsAuthenticated(true);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+      setFormErrors({ loginError: 'An error occurred during login. Please try again.' });
+    }
   };
+  
+  
 
   return (
     <div style={styles.wrapper}>
@@ -41,37 +75,34 @@ function Login() {
         <div style={styles.textContainer}>
           <div style={styles.loginText}>Log in to your account</div>
           <div style={styles.signupText}>
-            Don’t have an account? <a href="/signup" style={styles.signupLink}>Sign up</a>
+            Don’t have an account? <Link to="/signup" style={styles.signupLink}>Sign up</Link>
           </div>
         </div>
-        <button style={styles.button} onClick={handleGoogleSignIn}>
-          <img src="/google.png" alt="Google Logo" style={styles.logo} />
-          <span style={styles.buttonText}>Login with Google</span>
-        </button>
-        <button style={styles.button} onClick={handleFacebookSignIn}>
-          <img src="/fblogo.png" alt="Facebook Logo" style={styles.logo} />
-          <span style={styles.buttonText}>Login with Facebook</span>
-        </button>
         <div style={styles.orText}>Or with email and password</div>
-        <form style={styles.form} onSubmit={handleLogin}>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={styles.input}
-            placeholder="Email"
-            required
-          />
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-            placeholder="Password"
-            required
-          />
+        <form style={styles.form} onSubmit={handleLogin} noValidate>
+          <div style={styles.inputContainer}>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={styles.input}
+              placeholder="Email"
+            />
+            {formErrors.email && <div style={styles.error}>{formErrors.email}</div>}
+          </div>
+          <div style={styles.inputContainer}>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              placeholder="Password"
+            />
+            {formErrors.password && <div style={styles.error}>{formErrors.password}</div>}
+          </div>
+          {formErrors.loginError && <div style={styles.error}>{formErrors.loginError}</div>}
           <button type="submit" style={styles.submitButton}>
             Login
           </button>
@@ -91,8 +122,8 @@ const styles = {
     overflow: 'hidden',
     fontFamily: 'Poppins, sans-serif',
     position: 'relative',
-    backgroundColor: '#121212', // Dark background color
-    color: '#ffffff', // Light text color
+    backgroundColor: '#121212',
+    color: '#ffffff',
   },
   logoContainer: {
     position: 'absolute',
@@ -108,7 +139,7 @@ const styles = {
   },
   logoText: {
     fontSize: '28px',
-    color: '#ffffff', // Light color for logo text
+    color: '#ffffff',
     margin: 0,
   },
   loginContainer: {
@@ -129,7 +160,7 @@ const styles = {
     marginTop: '-50px',
   },
   loginText: {
-    color: '#ffffff', // Light color for login text
+    color: '#ffffff',
     fontSize: '26px',
     fontWeight: '600',
     marginBottom: '8px',
@@ -138,46 +169,20 @@ const styles = {
   },
   signupText: {
     fontSize: '19px',
-    color: '#b0b0b0', // Lighter grey color for better readability on dark background
+    color: '#b0b0b0',
     fontWeight: '650',
     marginLeft: '30px',
   },
   signupLink: {
     fontSize: '19px',
-    color: '#1a73e8', // Blue color for the link
+    color: '#1a73e8',
     textDecoration: 'none',
     fontWeight: '650',
-  },
-  button: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    maxWidth: '290px',
-    padding: '15px 20px',
-    fontSize: '18px',
-    backgroundColor: '#333', // Dark background for buttons
-    color: '#ffffff', // Light text color
-    border: '2px solid #555', // Darker border
-    borderRadius: '5px',
-    cursor: 'pointer',
-    outline: 'none',
-    marginBottom: '20px',
-    marginTop: '16px',
-    gap: '0px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
-  },
-  logo: {
-    width: '30px',
-    height: '30px',
-  },
-  buttonText: {
-    marginLeft: '10px',
   },
   orText: {
     margin: '20px 0',
     fontSize: '14px',
-    color: '#b0b0b0', // Light color for the 'or' text
+    color: '#b0b0b0',
     fontWeight: '500',
     marginTop: '-5px',
   },
@@ -188,27 +193,46 @@ const styles = {
     maxWidth: '270px',
     alignItems: 'center',
   },
+  inputContainer: {
+    marginBottom: '25px',
+    position: 'relative',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
   input: {
     padding: '10px',
     fontSize: '16px',
     borderRadius: '5px',
-    border: '1.6px solid #555', // Darker border
+    border: '1.6px solid #555',
     width: '100%',
-    marginBottom: '15px',
-    backgroundColor: '#222', // Dark background for inputs
-    color: '#ffffff', // Light text color
+    maxWidth: '250px',
+    backgroundColor: '#222',
+    color: '#ffffff',
+  },
+  error: {
+    color: 'red',
+    fontSize: '12px',
+    position: 'absolute',
+    left: '0',
+    right: '0',
+    textAlign: 'center',
+    zIndex: 1,
+    marginTop: '45px',
   },
   submitButton: {
     padding: '10px',
     fontSize: '16px',
     fontWeight: '500',
-    backgroundColor: '#1a73e8', // Button color
+    backgroundColor: '#1a73e8',
     color: 'white',
-    border: '1px solid #1a73e8', // Matching border color
+    border: '1px solid #1a73e8',
     borderRadius: '7px',
     cursor: 'pointer',
     width: '100%',
     maxWidth: '150px',
+    marginTop: '20px',
   },
   imageContainer: {
     flex: 1,
@@ -222,9 +246,8 @@ const styles = {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    filter: 'brightness(80%)', // Darken the background image
+    filter: 'brightness(80%)',
   },
 };
-
 
 export default Login;

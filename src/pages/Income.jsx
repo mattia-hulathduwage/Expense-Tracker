@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
-import { FaTrash } from "react-icons/fa";
-import { FaPlus } from "react-icons/fa";
-import Modal from '../components/DeletePopup';
+import { FaTrash, FaPlus } from "react-icons/fa";
+import Modal from '../components/DeletePopup'; // Ensure this path is correct
 
 const IncomeContainer = styled.div`
   padding: 20px;
@@ -15,7 +14,6 @@ const IncomeContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  position: relative;
 `;
 
 const Heading = styled.h1`
@@ -49,7 +47,8 @@ const TotalIncomeContainer = styled.div`
 const CardWrapper = styled.div`
   width: 100%;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between; /* Change to space-between to position items on the sides */
+  margin-top: 20px; /* Added margin for better spacing */
 `;
 
 const Card = styled.div`
@@ -57,13 +56,10 @@ const Card = styled.div`
   padding: 30px;
   max-width: 400px;
   width: 100%;
-  max-height: 100%;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-left: -10px;
-  margin-top: -20px;
+  margin-right: 20px; /* Space between form and table */
 `;
 
 const FormField = styled.div`
@@ -108,8 +104,7 @@ const SubmitButton = styled.button`
 const TableContainer = styled.div`
   width: 100%;
   max-width: 730px;
-  margin-top: 50px;
-  margin-left: 30px;
+  margin-left: 20px; /* Margin to create space from the form */
   max-height: 440px;
   overflow-y: auto;
 
@@ -224,6 +219,8 @@ const Income = () => {
   const [latestIncome, setLatestIncome] = useState([]);
   const [totalIncome, setTotalIncome] = useState(0);
   const [displayedTotal, setDisplayedTotal] = useState(0);
+  const [isEditing, setIsEditing] = useState(false); // State to check if we are editing
+  const [editingId, setEditingId] = useState(null); // ID of the income record being edited
 
   const [showModal, setShowModal] = useState(false);
   const [incomeToDelete, setIncomeToDelete] = useState(null);
@@ -266,71 +263,101 @@ const Income = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post("http://localhost:3001/api/income", income)
-      .then((response) => {
-        console.log("Income added:", response.data);
-        setIncome({
-          title: "",
-          amount: "",
-          date: "",
-          category: "",
-          reference: "",
+    if (isEditing) {
+      // Update income record
+      axios
+        .put(`http://localhost:3001/api/income/${editingId}`, income)
+        .then((response) => {
+          console.log("Income updated:", response.data);
+          resetForm();
+          return axios.get("http://localhost:3001/api/income/latest");
+        })
+        .then((response) => {
+          console.log("Updated latest income:", response.data);
+          setLatestIncome(response.data);
+          const total = response.data.reduce((sum, item) => sum + item.amount, 0);
+          setTotalIncome(total);
+        })
+        .catch((error) => {
+          console.error("There was an error updating the income!", error);
         });
-        return axios.get("http://localhost:3001/api/income/latest");
-      })
-      .then((response) => {
-        console.log("Updated latest income:", response.data);
-        setLatestIncome(response.data);
-        const total = response.data.reduce((sum, item) => sum + item.amount, 0);
-        setTotalIncome(total);
-      })
-      .catch((error) => {
-        console.error("There was an error adding the income!", error);
-      });
+    } else {
+      // Add new income record
+      axios
+        .post("http://localhost:3001/api/income", income)
+        .then((response) => {
+          console.log("Income added:", response.data);
+          resetForm();
+          return axios.get("http://localhost:3001/api/income/latest");
+        })
+        .then((response) => {
+          console.log("Latest income fetched:", response.data);
+          setLatestIncome(response.data);
+          const total = response.data.reduce((sum, item) => sum + item.amount, 0);
+          setTotalIncome(total);
+        })
+        .catch((error) => {
+          console.error("There was an error adding the income!", error);
+        });
+    }
+  };
+
+  const resetForm = () => {
+    setIncome({
+      title: "",
+      amount: "",
+      date: "",
+      category: "",
+      reference: "",
+    });
+    setIsEditing(false);
+    setEditingId(null);
   };
 
   const handleDelete = (id) => {
+    setIncomeToDelete(id);
+    setShowModal(true); // Show modal for confirmation
+  };
+
+  const confirmDelete = () => {
     axios
-      .delete(`http://localhost:3001/api/income/${id}`)
+      .delete(`http://localhost:3001/api/income/${incomeToDelete}`)
       .then((response) => {
         console.log("Income deleted:", response.data);
+        // Refresh income list after deletion
         return axios.get("http://localhost:3001/api/income/latest");
       })
       .then((response) => {
-        console.log("Updated latest income after deletion:", response.data);
+        console.log("Latest income fetched:", response.data);
         setLatestIncome(response.data);
         const total = response.data.reduce((sum, item) => sum + item.amount, 0);
         setTotalIncome(total);
       })
       .catch((error) => {
         console.error("There was an error deleting the income!", error);
+      })
+      .finally(() => {
+        setShowModal(false); // Close the modal after confirmation
       });
   };
 
-  const handleDeleteClick = (id) => {
-    setIncomeToDelete(id);
-    setShowModal(true);
+  const handleCancel = () => {
+    setShowModal(false); // Close modal on cancel
   };
 
-  const handleConfirmDelete = () => {
-    if (incomeToDelete) {
-      handleDelete(incomeToDelete);
-      setIncomeToDelete(null);
-      setShowModal(false);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setIncomeToDelete(null);
-    setShowModal(false);
+  const handleEdit = (id) => {
+    const selectedIncome = latestIncome.find((item) => item.id === id);
+    setIncome(selectedIncome);
+    setIsEditing(true);
+    setEditingId(id);
   };
 
   return (
     <IncomeContainer>
-      <Heading>Income</Heading>
+      <Heading>Income Tracker</Heading>
       <TotalIncomeContainer>
-        <span className="total-text">Total Income:</span> Rs. {formatAmount(displayedTotal)}
+        <span className="total-text">Total Income:</span>
+        <span>{formatAmount(displayedTotal)}</span>
       </TotalIncomeContainer>
       <CardWrapper>
         <Card>
@@ -339,9 +366,9 @@ const Income = () => {
               <input
                 type="text"
                 name="title"
+                placeholder="Title"
                 value={income.title}
                 onChange={handleChange}
-                placeholder="Income Title"
                 required
               />
             </FormField>
@@ -349,9 +376,9 @@ const Income = () => {
               <input
                 type="number"
                 name="amount"
+                placeholder="Amount"
                 value={income.amount}
                 onChange={handleChange}
-                placeholder="Income Amount"
                 required
               />
             </FormField>
@@ -359,6 +386,7 @@ const Income = () => {
               <input
                 type="date"
                 name="date"
+                placeholder="Date"
                 value={income.date}
                 onChange={handleChange}
                 required
@@ -371,48 +399,47 @@ const Income = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="">Select Category</option>
-                <option value="salary">Salary</option>
-                <option value="freelance">Freelance</option>
-                <option value="investment">Investment</option>
-                <option value="other">Other</option>
+                <option value="" disabled>Select Category</option>
+                <option value="Salary">Salary</option>
+                <option value="Bonus">Bonus</option>
+                <option value="Investment">Investment</option>
               </select>
             </FormField>
             <FormField>
               <input
                 type="text"
                 name="reference"
+                placeholder="Reference"
                 value={income.reference}
                 onChange={handleChange}
-                placeholder="Reference (Optional)"
               />
             </FormField>
             <ButtonWrapper>
-              <SubmitButton type="submit">Add Income</SubmitButton>
+              <SubmitButton type="submit">
+                <PlusIcon /> {isEditing ? "Update" : "Add Income"}
+              </SubmitButton>
             </ButtonWrapper>
           </form>
         </Card>
         <TableContainer>
           <Table>
             <thead>
-              <tr>
+              <TableRow>
                 <TableHeader>Title</TableHeader>
                 <TableHeader>Amount</TableHeader>
                 <TableHeader>Date</TableHeader>
-                <TableHeader></TableHeader>
-              </tr>
+                <TableHeader>Actions</TableHeader>
+              </TableRow>
             </thead>
             <tbody>
               {latestIncome.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.title}</TableCell>
-                  <TableCellAmount>
-                    <PlusIcon />Rs.
-                    {formatAmount(item.amount)}
-                  </TableCellAmount>
+                  <TableCellAmount>{formatAmount(item.amount)}</TableCellAmount>
                   <TableCell>{formatDate(item.date)}</TableCell>
                   <TableCell>
-                    <DeleteIcon onClick={() => handleDeleteClick(item.id)} />
+                    <DeleteIcon onClick={() => handleDelete(item.id)} />
+                    <span style={{ marginLeft: '10px', cursor: 'pointer', color: 'blue' }} onClick={() => handleEdit(item.id)}>Edit</span>
                   </TableCell>
                 </TableRow>
               ))}
@@ -420,12 +447,12 @@ const Income = () => {
           </Table>
         </TableContainer>
       </CardWrapper>
-      
       {showModal && (
         <Modal
-          message="Are you sure you want to delete this income?"
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
+          showModal={showModal}
+          setShowModal={setShowModal}
+          confirmDelete={confirmDelete}
+          onCancel={handleCancel}
         />
       )}
     </IncomeContainer>

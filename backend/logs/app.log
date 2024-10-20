@@ -1,0 +1,21 @@
+{"level":"info","message":"Server is running on http://localhost:3001","timestamp":"2024-10-18T23:52:57.633Z"}
+{"level":"info","message":"Server is running on http://localhost:3001","timestamp":"2024-10-18T23:53:26.112Z"}
+{"level":"info","message":"Request Body: {\"fullname\":\"Ishan Anjana\",\"useremail\":\"ishan@gmail.com\",\"telephone\":\"0751235728\",\"password\":\"199917Ia\"}","timestamp":"2024-10-19T00:10:49.254Z"}
+{"level":"info","message":"Hashed Password: $2b$10$c3bOS983ThR9Fu3xd03uQ.M7O85K7i5OfHiPYjlL916SAQ9.eEV0a","timestamp":"2024-10-19T00:10:49.375Z"}
+{"level":"info","message":"User registered successfully: Ishan Anjana (ishan@gmail.com)","timestamp":"2024-10-19T00:10:49.386Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:08:39.901Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:08:41.273Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:04.004Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:05.186Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:05.571Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:05.832Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:06.021Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:06.195Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:06.385Z"}
+{"level":"warn","message":"Unauthorized access attempt to update password.","timestamp":"2024-10-19T04:15:06.540Z"}
+{"level":"info","message":"Request Body: {\"fullname\":\"Sandini Perera\",\"useremail\":\"sandini@gmail.com\",\"telephone\":\"0715224946\",\"password\":\"200284Sp\"}","timestamp":"2024-10-19T07:00:46.828Z"}
+{"level":"info","message":"Hashed Password: $2b$10$wmrvTRIFRsdxAce4QEyV4.tteqFTHJPtqUuYwhhybyEr308fpETE6","timestamp":"2024-10-19T07:00:47.048Z"}
+{"level":"info","message":"User registered successfully: Sandini Perera (sandini@gmail.com)","timestamp":"2024-10-19T07:00:47.070Z"}
+{"level":"info","message":"Request Body: {\"fullname\":\"Ganguli Pehara\",\"useremail\":\"ganguli55@gmail.com\",\"telephone\":\"0711888607\",\"password\":\"20020904Mat\"}","timestamp":"2024-10-19T08:36:33.239Z"}
+{"level":"info","message":"Hashed Password: $2b$10$lKahIPsKmmfzAXTvkGmCYuoxtXM/zTBNJK9KBBK8ITJErvrUg98yS","timestamp":"2024-10-19T08:36:33.472Z"}
+{"level":"info","message":"User registered successfully: Ganguli Pehara (ganguli55@gmail.com)","timestamp":"2024-10-19T08:36:33.487Z"}
