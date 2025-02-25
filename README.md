@@ -1,7 +1,7 @@
 # Expense Tracker 💸
 
 A **web-based expense tracker** built with **React.js** for the frontend, **Node.js** for the backend, and **MySQL** for the database. The system allows users to track their personal expenses and manage their budget securely with built-in software security features such as password encryption and session management.
-
+![Alt text](https://github.com/mattia-hulathduwage/Expense-Tracker/blob/master/screenshot.png?raw=true)
 ## Features  
 ✅ **Expense Tracking**: Add, edit, and delete expenses. View the total expense, categorize expenses, and set budgets.  
 ✅ **User Authentication**: Secure login system with password encryption using **bcrypt**.  
